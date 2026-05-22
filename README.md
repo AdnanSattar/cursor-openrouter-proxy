@@ -3,17 +3,6 @@
   > **Cursor + OpenRouter is broken. Here's a 5-minute fix.**
 
 <p align="center">
-  <iframe
-    width="640"
-    height="360"
-    src="https://www.youtube-nocookie.com/embed/0p9-kuB6U8M?rel=0"
-    title="Cursor + OpenRouter is broken. Here's a 5-minute fix"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen
-  ></iframe>
-</p>
-
-<p align="center">
   <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AdnanSattar/cursor-openrouter-proxy/main/watch.html">
     <img src="https://img.youtube.com/vi/0p9-kuB6U8M/hqdefault.jpg" alt="Play: Cursor + OpenRouter is broken. Here's a 5-minute fix" width="640">
   </a>
