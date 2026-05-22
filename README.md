@@ -1,5 +1,6 @@
 # LiteLLM OpenRouter Gateway for Cursor
 
+  > **Cursor + OpenRouter is broken. Here's a 5-minute fix.**
 <p align="center">
 
 `cursor-openrouter-litellm-proxy` is a production-grade **OpenAI-compatible AI gateway for Cursor IDE** powered by **LiteLLM + OpenRouter**. This setup exposes a single AI gateway endpoint that automatically selects the best model, applies caching, and handles failover. The full smart-routing configuration is defined in `config.yaml`.
