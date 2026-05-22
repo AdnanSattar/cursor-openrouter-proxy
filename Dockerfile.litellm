@@ -1,0 +1,54 @@
+FROM ghcr.io/berriai/litellm:main-latest
+
+RUN python - <<'PY'
+import os
+
+TARGETS = [
+    "/usr/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma",
+    "/app/litellm-proxy-extras/litellm_proxy_extras/schema.prisma",
+    "/app/schema.prisma",
+    "/app/litellm/proxy/schema.prisma",
+]
+
+MODEL_LINE = "model LiteLLM_DeletedTeamTable {"
+
+def patch_file(path: str) -> bool:
+    if not os.path.exists(path):
+        return False
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    starts = [i for i, l in enumerate(lines) if l.strip() == MODEL_LINE]
+    if len(starts) <= 1:
+        return False
+
+    # Remove all occurrences after the first.
+    remove_ranges = []
+    for start in starts[1:]:
+        end = None
+        for j in range(start + 1, len(lines)):
+            if lines[j].lstrip().startswith("}"):
+                end = j
+                break
+        if end is None:
+            raise RuntimeError(f"Could not find closing brace for duplicate model in {path}")
+        remove_ranges.append((start, end))
+
+    # Apply removals from bottom to top so indices stay valid.
+    for start, end in sorted(remove_ranges, reverse=True):
+        del lines[start : end + 1]
+
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.writelines(lines)
+    return True
+
+patched_any = False
+for p in TARGETS:
+    try:
+        patched_any = patch_file(p) or patched_any
+    except Exception as e:
+        raise RuntimeError(f"Failed patching {p}: {e}") from e
+
+print("patched" if patched_any else "no-op")
+PY
+

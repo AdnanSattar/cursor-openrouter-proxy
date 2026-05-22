@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: litellm-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-litellm}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-litellm}
+      - POSTGRES_DB=${POSTGRES_DB:-litellm}
+    volumes:
+      - litellm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-litellm} -d ${POSTGRES_DB:-litellm}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: litellm-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - litellm_redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  litellm:
+    build:
+      context: .
+      dockerfile: Dockerfile.litellm
+    image: litellm-patched:main-latest
+    container_name: litellm-proxy
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${LITELLM_PORT:-4000}:4000"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-localmasterkey}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - UI_USERNAME=${UI_USERNAME}
+      - UI_PASSWORD=${UI_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://litellm:litellm@postgres:5432/litellm?schema=public}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    command: ["--config", "/app/config.yaml"]
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: litellm-cloudflare-tunnel
+    command: tunnel --no-autoupdate --url http://litellm:4000
+    depends_on:
+      - litellm
+    restart: unless-stopped
+
+volumes:
+  litellm_postgres_data:
+  litellm_redis_data:

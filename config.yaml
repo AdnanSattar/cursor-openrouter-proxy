@@ -1,0 +1,182 @@
+# =============================================================================
+# LiteLLM Control Plane - Production-Grade Smart Routing for Cursor
+# =============================================================================
+# Cursor sees only: chat | coder | vision
+# Internally: 15+ models, cascading fallbacks, Redis cache, latency-aware routing
+# =============================================================================
+
+model_list:
+  # ---------------------------------------------------------------------------
+  # PRIMARY MODELS (what Cursor uses)
+  # ---------------------------------------------------------------------------
+  - model_name: chat
+    litellm_params:
+      model: openrouter/z-ai/glm-4.5-air:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: coder
+    litellm_params:
+      model: openrouter/qwen/qwen3-coder:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: vision
+    litellm_params:
+      model: openrouter/nvidia/nemotron-nano-12b-v2-vl:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  # ---------------------------------------------------------------------------
+  # FALLBACK POOL - Chat
+  # ---------------------------------------------------------------------------
+  - model_name: step_flash
+    litellm_params:
+      model: openrouter/stepfun/step-3.5-flash:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: gemma27
+    litellm_params:
+      model: openrouter/google/gemma-3-27b-it:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: llama70
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.3-70b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: qwen_think
+    litellm_params:
+      model: openrouter/qwen/qwen3-235b-a22b-thinking-2507:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  # ---------------------------------------------------------------------------
+  # FALLBACK POOL - Coder
+  # ---------------------------------------------------------------------------
+  - model_name: gpt_oss
+    litellm_params:
+      model: openrouter/openai/gpt-oss-20b:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  - model_name: nemotron30
+    litellm_params:
+      model: openrouter/nvidia/nemotron-3-nano-30b-a3b:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  # ---------------------------------------------------------------------------
+  # FALLBACK POOL - Vision
+  # ---------------------------------------------------------------------------
+  - model_name: qwen_vl
+    litellm_params:
+      model: openrouter/qwen/qwen3-vl-30b-a3b-thinking:free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  # ---------------------------------------------------------------------------
+  # OPTIONAL: OpenRouter dynamic free model router
+  # ---------------------------------------------------------------------------
+  - model_name: free_auto
+    litellm_params:
+      model: openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY
+      extra_headers:
+        HTTP-Referer: http://localhost
+        X-Title: litellm-local
+
+  # ---------------------------------------------------------------------------
+  # OPTIONAL: Complexity-based smart router (prompt-aware routing)
+  # Routes: SIMPLE -> glm, MEDIUM -> gemma27, COMPLEX -> llama70, REASONING -> qwen_think
+  # ---------------------------------------------------------------------------
+  - model_name: smart_chat
+    litellm_params:
+      model: auto_router/complexity_router
+      complexity_router_config:
+        tiers:
+          SIMPLE: chat
+          MEDIUM: gemma27
+          COMPLEX: llama70
+          REASONING: qwen_think
+      complexity_router_default_model: gemma27
+
+# =============================================================================
+# GENERAL SETTINGS
+# =============================================================================
+general_settings:
+  master_key: sk-localmasterkey
+  database_url: os.environ/DATABASE_URL
+  verbose: true
+
+# =============================================================================
+# LITELLM SETTINGS
+# =============================================================================
+litellm_settings:
+  # Redis cache - 60-80% cost reduction, instant repeated prompts
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: os.environ/REDIS_PORT
+    password: os.environ/REDIS_PASSWORD
+
+# =============================================================================
+# ROUTER SETTINGS - Smart routing & reliability
+# =============================================================================
+router_settings:
+  # Retries before fallback
+  num_retries: 3
+
+  # Timeout per request (seconds)
+  timeout: 120
+
+  # Latency-aware routing - prioritize fastest responding models
+  routing_strategy: latency-based-routing
+
+  # Pre-call checks (context window, etc.)
+  enable_pre_call_checks: true
+
+  # Cooldown failed models to avoid repeated failures
+  allowed_fails: 3
+  cooldown_time: 30
+
+  # Cascading fallbacks - try next model on rate limit / failure
+  # Note: Enable "Free model publication" at https://openrouter.ai/settings/privacy if you get 404 data-policy errors
+  fallbacks:
+    - chat:
+        - step_flash
+        - gemma27
+        - llama70
+        - qwen_think
+
+    - coder:
+        - nemotron30
+        - gpt_oss
+        - gemma27
+
+    - vision:
+        - qwen_vl

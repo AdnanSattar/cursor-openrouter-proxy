@@ -1,0 +1,41 @@
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Cloudflare tunnel credentials (see README stable tunnel setup)
+.cloudflared/
+**/cert.pem
+**/*-tunnel.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.log
+.venv/
+venv/
+
+# Node (if added later)
+node_modules/
+
+# Docker local overrides
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# IDE & OS
+.vscode/
+.cursor/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build / cache
+dist/
+build/
+*.egg-info/
