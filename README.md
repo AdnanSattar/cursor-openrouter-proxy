@@ -1,6 +1,26 @@
 # LiteLLM OpenRouter Gateway for Cursor
 
   > **Cursor + OpenRouter is broken. Here's a 5-minute fix.**
+
+<p align="center">
+  <iframe
+    width="640"
+    height="360"
+    src="https://www.youtube-nocookie.com/embed/0p9-kuB6U8M?rel=0"
+    title="Cursor + OpenRouter is broken. Here's a 5-minute fix"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+  ></iframe>
+</p>
+
+<p align="center">
+  <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AdnanSattar/cursor-openrouter-proxy/main/watch.html">
+    <img src="https://img.youtube.com/vi/0p9-kuB6U8M/hqdefault.jpg" alt="Play: Cursor + OpenRouter is broken. Here's a 5-minute fix" width="640">
+  </a>
+  <br>
+  <strong>Video walkthrough:</strong> <a href="https://www.youtube.com/watch?v=0p9-kuB6U8M">Cursor + OpenRouter is broken. Here's a 5-minute fix</a>
+</p>
+
 <p align="center">
 
 `cursor-openrouter-litellm-proxy` is a production-grade **OpenAI-compatible AI gateway for Cursor IDE** powered by **LiteLLM + OpenRouter**. This setup exposes a single AI gateway endpoint that automatically selects the best model, applies caching, and handles failover. The full smart-routing configuration is defined in `config.yaml`.
@@ -73,6 +93,7 @@ qwen_vl (qwen3-vl-30b)
 
 ## Quick Navigation
 
+- [Video walkthrough (inline player)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AdnanSattar/cursor-openrouter-proxy/main/watch.html)
 - [Cursor + OpenRouter Compatibility (Known Issues)](#cursor--openrouter-compatibility-known-issues)
 - [Architecture](#architecture)
 - [Features](#features)
